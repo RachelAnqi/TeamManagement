@@ -20,7 +20,7 @@
   
   options(scipen=200,
           mongodb = list(
-            "host" = "59.110.31.50:2017"
+            "host" = "000000000"
             # "username" = "root",
             # "password" = "root"
           ))
@@ -1323,16 +1323,19 @@
         
         out <-lapply(1:26, function(x) {
           
-          report_name1 <- info$report_name[x]
-          
-          if (info$phase[x]==phase) {
+          if( is.na(info$phase[x])) {
+            
+            rownn_x <- x-13
+            report_name1 <- info$report_name[rownn_x]
             chk <- which(names_report==report_name1)
             list("phase"=phase,
                  "report_name"=report_name1,
                  "result"=to_mongo_tmp[[chk]]$result)
+            
           } else {
+            
             list("phase"=info$phase[x],
-                 "report_name"= report_name1,
+                 "report_name"= info$report_name[x],
                  "result"=info$result[[x]])
           }    
         })

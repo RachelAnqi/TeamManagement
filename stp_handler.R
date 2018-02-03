@@ -956,7 +956,7 @@
       select(variable,
              value)
     
-    colnames(report3_mod2) <- c("general_name","values")
+    colnames(report3_mod2) <- c("general_names","values")
     
     
     

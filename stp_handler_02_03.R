@@ -20,7 +20,7 @@
   
   options(scipen=200,
           mongodb = list(
-            "host" = "00.00.00.00"
+            "host" = "59.110.31.50:2017"
             # "username" = "root",
             # "password" = "root"
           ))
@@ -1286,7 +1286,7 @@
   
   #- create connection, database and collection
   
-    mongodb_con <- mongo(collection = "Copy_of_report",
+    mongodb_con <- mongo(collection = "report",
         url = sprintf(
           "mongodb://%s/%s",
           # options()$mongodb$username,

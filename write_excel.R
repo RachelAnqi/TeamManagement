@@ -95,25 +95,26 @@ writeDown <- function(report){
                  startCol = 1,startRow = sum(53,3,nrow(report6_2)),rowNames = F,colNames = T)
   return(wb)}
 
-inter_db <- mongo(collection = "intermedia",
+db_inter <- mongo(collection = "intermedia",
                    url = sprintf(
                      "mongodb://%s/%s",
                      options()$mongodb$host,
                      "TMIST"))
 
-background <- inter_db$find( paste('{"uuid" : ', '"', "all", '"}',sep = ""))
+background <- db_inter$find( paste('{"uuid" : ', '"', "all", '"}',sep = ""))
 
-rsd_sheet_name <- background$rsd_sheet_name
-report_sep_names <- background$report_sep_names
-report_names <- background$report_names
+rsd_sheet_name <- background$rsd_sheet_name[[1]]
+report_sep_names <- background$report_sep_names[[1]]
+report_names <- background$report_names[[1]]
 
-report_db <- mongo(collection = "Copy_of_report",
+
+db_report <- mongo(collection = "Copy_of_report",
                        url = sprintf(
                          "mongodb://%s/%s",
                          options()$mongodb$host,
                          "TMIST"))
 
-info <- report_db$find( paste('{"uuid" : ', '"', R_Json_Path, '"}',sep = ""))
+info <- db_report$find( paste('{"uuid" : ', '"', R_Json_Path, '"}',sep = ""))
 
 info$report[[1]]$
   

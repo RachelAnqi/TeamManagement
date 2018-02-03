@@ -1,5 +1,5 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-# ProjectName:  stp
+# ProjectName:  TMIST
 # Purpose:      sales training
 # programmer:   Anqi Chen
 # Date:         20-11-2017
@@ -1210,6 +1210,7 @@
   
   to_mongo <- list(uuid=R_Json_Path,
                    user_id=user_name,
+                   "time" = as.numeric(as.POSIXct(Sys.Date(), format="%Y-%m-%d")),
                    "report"=to_mongo_tmp)
   
 #####-- intermedia data
@@ -1286,7 +1287,7 @@
   
   #- create connection, database and collection
   
-    mongodb_con <- mongo(collection = "report",
+    mongodb_con <- mongo(collection = "Copy_of_report",
         url = sprintf(
           "mongodb://%s/%s",
           # options()$mongodb$username,
@@ -1303,7 +1304,8 @@
       info <- transfer2[rownn2,]$report[[1]]
       phase_in_mongo <- info$phase
       
-     # if (phase %in% phase_in_mongo) {
+      if (phase %in% phase_in_mongo) {
+        
       out <-lapply(1:nrow(info), function(x) {
           
           report_name1 <- info$report_name[x]
@@ -1317,11 +1319,28 @@
             list("phase"=info$phase[x],
                  "report_name"= report_name1,
                  "result"=info$result[[x]])
-          }
-        }) #}
+          }}) 
+      } else {
+        
+        out <-lapply(1:26, function(x) {
+          
+          report_name1 <- info$report_name[x]
+          
+          if (info$phase[x]==phase) {
+            chk <- which(names_report==report_name1)
+            list("phase"=phase,
+                 "report_name"=report_name1,
+                 "result"=to_mongo_tmp[[chk]]$result)
+          } else {
+            list("phase"=info$phase[x],
+                 "report_name"= report_name1,
+                 "result"=info$result[[x]])
+          }    
+        })
+      }
         
       mongo_tmp <- paste('{"uuid" : ', '"', R_Json_Path, '"}',sep = "")
-      mongo_tmp2 <- paste('{"$set":{"report":',toJSON(out,auto_unbox = T),'}}', sep = "")
+      mongo_tmp2 <- paste('{"$set":{"time":',as.numeric(as.POSIXct(Sys.Date(), format="%Y-%m-%d")),',"report":',toJSON(out,auto_unbox = T),'}}', sep = "")
       mongodb_con$update(mongo_tmp, mongo_tmp2)
       
         

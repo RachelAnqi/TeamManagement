@@ -309,7 +309,7 @@
   
   
   
-  transfer1 <- db_inter$find()
+  transfer1 <- db_inter$find(paste('{"uuid" : "',R_Json_Path,'"}',sep = ""))
   
   if (phase ==1) {
     
@@ -323,13 +323,11 @@
     
   } else {
     
-    rownum <- which(transfer1$uuid==R_Json_Path &
-                      transfer1$userid==user_name &
-                      transfer1$inter$phase==1)
     
-    inter_data <- transfer1[rownum,]$inter$data[[1]]
-    last_report1_1 <- transfer1[rownum,]$inter$report[[1]]
-    last_acc_success_value <- transfer1[rownum,]$inter$acc_success_value[[1]]
+    
+    inter_data <- transfer1$inter$data[[1]]
+    last_report1_1 <- transfer1$inter$report[[1]]
+    last_acc_success_value <- transfer1$inter$acc_success_value[[1]]
     # colnames(last_report1_1) <- as.vector(sapply(colnames(last_report1_1),function(x) as_utf8(x)))
   }
   
@@ -1214,6 +1212,7 @@
                    "report"=to_mongo_tmp)
   
 #####-- intermedia data
+  if (phase == 1) {
   if (R_Json_Path %in% transfer1$uuid) {
     
     mongo_tmp <- paste('{"uuid" : ', '"', R_Json_Path, '"}',sep = "")
@@ -1236,7 +1235,7 @@
                na="string",
                auto_unbox = T)  
   
-  }
+  }}
   
   
   

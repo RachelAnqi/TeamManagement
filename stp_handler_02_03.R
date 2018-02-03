@@ -32,8 +32,8 @@
   argss <- commandArgs(TRUE)
   R_Json_Path <- argss[1]
   #file_path <- argss[3]
-  R_File_Path <- "resource/pre_data_linux.RData"
-  load(R_File_Path)
+  #R_File_Path <- "resource/pre_data_linux.RData"
+  #load(R_File_Path)
 
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ##                              write function
@@ -513,7 +513,7 @@
                     admin_work = ifelse(prod_hours==0,0,admin_work),
                     work_time = ifelse(prod_hours==0,0,work_time)) %>%
       dplyr::mutate(product_price = sapply(prod_name,function(x) product_info[which(product_info$prod_name==x),]$prod_unit_price),
-                    target_revenue= prod_hours,
+                    target_revenue= prod_value,
                     target_volume = round(target_revenue/product_price)) %>%
       group_by(phase,salesmen) %>%
       dplyr::mutate(other_time=work_time-(

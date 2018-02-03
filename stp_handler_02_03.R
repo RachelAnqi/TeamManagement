@@ -31,6 +31,7 @@
   # argss[3] :  reports save path
   argss <- commandArgs(TRUE)
   R_Json_Path <- argss[1]
+  Phase <- as.integer(argss[2])
   #file_path <- argss[3]
   #R_File_Path <- "resource/pre_data_linux.RData"
   #load(R_File_Path)
@@ -298,20 +299,18 @@
                         "TMIST"))
   
   # Read all the entries
-  transfer <- json_mongo$find()
-  rownames <- which(transfer$uuid==R_Json_Path)
-  decision <- transfer[rownames,]$decision[[1]]
-  management <- transfer[rownames,]$management[[1]]
+  transfer <- json_mongo$find(paste('{"uuid" : "',R_Json_Path,'"}',sep = ""))
+  decision <- transfer$decision[[1]]
+  management <- transfer$management[[1]]
   
   ## arg in need
-  phase <- decision$phase[1]
   user_name <- transfer$user_id
   
   
   
   transfer1 <- db_inter$find(paste('{"uuid" : "',R_Json_Path,'"}',sep = ""))
   
-  if (phase ==1) {
+  if (Phase ==1) {
     
     # last_report1_1 <- p0_report
     # last_acc_success_value <- 0
@@ -334,7 +333,7 @@
   
   
   decision_input <- apply(decision, 1, function(x) {
-  
+   
     part1 <- x$sales
     part2 <- x$visit_hours
     part <- part1 %>%
@@ -354,7 +353,8 @@
     return(out)
   })
   
-  decision_input <- bind_rows(decision_input)
+  decision_input <- bind_rows(decision_input) %>%
+    filter(phase==Phase)
   
   management_input <- apply(management, 1, function(x) {
 
@@ -379,7 +379,8 @@
   management_input <- bind_rows(management_input) %>%
     left_join(project_list, by = "project_code") %>%
     dplyr::select(-project_code) %>%
-    spread(project_name,days)
+    spread(project_name,days) %>%
+    filter(phase==Phase)
   
   
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1142,7 +1143,7 @@
   
   
   
-  if (phase == 1) {
+  if (Phase == 1) {
     last_report1_1$phase <- c("phase0","phase1","phase2")
     report1_1_tmp <- rbind(last_report1_1[1,],data_to_use2$report1_mod1)
   } else {
@@ -1158,7 +1159,7 @@
     arrange(rank) %>%
     select(-variable,-rank) 
   
-  if (phase == 1) {
+  if (Phase == 1) {
     report1_mod1 <- data.frame(name = report1_mod1$name,
                                phase0 = report1_mod1$phase0,
                                phase1= report1_mod1$phase1,
@@ -1191,7 +1192,7 @@
     "report5_sales_by_salesmen" = data_to_use2$report5_mod2,
     "report5_sales_by_prod" = data_to_use2$report5_mod3)
   
-  names(tmp_data) <- report_names
+  names(tmp_data) <- report_names$names_chinese
   
   to_mongo_tmp <- lapply(1:length(tmp_data), function(x) {
     report_name <- names(tmp_data)[x]
@@ -1199,10 +1200,10 @@
     colname <- colnames(tmp)
     # colnames(tmp) <- 
     #   sapply(colname,function(x) names(names_box[which(x==names_box)]))
-    out_new <- list("phase"=phase,
-                    report_name,
+    out_new <- list("phase"=Phase,
+                    "report_name"=report_name,
                     "result"=tmp)
-    names(out_new)[2] <- "report_name"
+    
     return(out_new)
   })
   
@@ -1212,12 +1213,12 @@
                    "report"=to_mongo_tmp)
   
 #####-- intermedia data
-  if (phase == 1) {
+  if (Phase == 1) {
   if (R_Json_Path %in% transfer1$uuid) {
     
     mongo_tmp <- paste('{"uuid" : ', '"', R_Json_Path, '"}',sep = "")
     mongo_tmp1 <- paste('{"$set":{"inter":',
-                        toJSON(list("phase" = phase,
+                        toJSON(list("phase" = Phase,
                                     "data" = data_to_use,
                                     "report" = report1_1_tmp,
                                     "acc_success_value" = data_to_use2$acc_success_value),
@@ -1228,7 +1229,7 @@
     
     db_inter$insert(list("uuid"=R_Json_Path,
                     "user_id"=user_name,
-                    "inter"=list("phase" = phase,
+                    "inter"=list("phase" = Phase,
                                  "data" = data_to_use,
                                  "report" = report1_1_tmp,
                                  "acc_success_value" = data_to_use2$acc_success_value)),
@@ -1303,15 +1304,15 @@
       info <- transfer2[rownn2,]$report[[1]]
       phase_in_mongo <- info$phase
       
-      if (phase %in% phase_in_mongo) {
+      if (Phase %in% phase_in_mongo) {
         
       out <-lapply(1:nrow(info), function(x) {
           
           report_name1 <- info$report_name[x]
           
-          if (info$phase[x]==phase) {
+          if (info$phase[x]==Phase) {
             chk <- which(names_report==report_name1)
-            list("phase"=phase,
+            list("phase"=Phase,
                  "report_name"=report_name1,
                  "result"=to_mongo_tmp[[chk]]$result)
           } else {
@@ -1328,7 +1329,7 @@
             rownn_x <- x-13
             report_name1 <- info$report_name[rownn_x]
             chk <- which(names_report==report_name1)
-            list("phase"=phase,
+            list("phase"=Phase,
                  "report_name"=report_name1,
                  "result"=to_mongo_tmp[[chk]]$result)
             

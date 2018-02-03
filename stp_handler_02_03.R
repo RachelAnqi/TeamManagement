@@ -1303,7 +1303,7 @@
       info <- transfer2[rownn2,]$report[[1]]
       phase_in_mongo <- info$phase
       
-      if (phase %in% phase_in_mongo) {
+     # if (phase %in% phase_in_mongo) {
       out <-lapply(1:nrow(info), function(x) {
           
           report_name1 <- info$report_name[x]
@@ -1318,7 +1318,7 @@
                  "report_name"= report_name1,
                  "result"=info$result[[x]])
           }
-        }) }
+        }) #}
         
       mongo_tmp <- paste('{"uuid" : ', '"', R_Json_Path, '"}',sep = "")
       mongo_tmp2 <- paste('{"$set":{"report":',toJSON(out,auto_unbox = T),'}}', sep = "")

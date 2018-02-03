@@ -1,0 +1,122 @@
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# ProjectName:  TMIST
+# Purpose:      write excel
+# programmer:   Anqi Chen
+# Date:         20-11-2017
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+library(DT)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(digest)
+library(openxlsx)
+library(mongolite)
+library(jsonlite)
+library(utf8)
+
+options(scipen=200,
+        mongodb = list(
+          "host" = "59.110.31.50:2017"
+          # "username" = "root",
+          # "password" = "root"
+        ))
+
+## receive signal
+# argss[1] :  R_File_Path
+# argss[2] :  filekey of json
+# argss[3] :  reports save path
+argss <- commandArgs(TRUE)
+R_Json_Path <- argss[1]
+
+writeDown <- function(report){
+
+  wb <- createWorkbook()
+
+  ## 1
+  addWorksheet(wb, rsd_sheet_names[1])
+  report7_1 <- cbind("name"="",report$report1_mod1)
+  colnames(report7_1)[1] <- report_sep_names[1]
+  writeDataTable(wb, sheet = rsd_sheet_names[1],withFilter = F, report7_1,
+                 startCol = 1,rowNames = F,colNames = T)
+  report7_2 <- cbind("name"="",report$report1_mod2)
+  colnames(report7_2)[1] <- report_sep_names[2]
+  writeDataTable(wb, sheet = rsd_sheet_names[1],withFilter = F, report7_2,
+                 startCol = 1,startRow = 8,rowNames = F,colNames = T)
+
+  ## 2
+  addWorksheet(wb, rsd_sheet_names[2])
+  report1_1 <- cbind("name"="",report$report2_mod1)
+  colnames(report1_1)[1] <- report_sep_names[3]
+  writeDataTable(wb, sheet = rsd_sheet_names[2],withFilter = F, report1_1,
+                 startCol = 1,rowNames = F,colNames = T)
+  report1_2 <- bind_rows(report$report2_mod2,
+                     report$report2_mod3,
+                     report$report2_mod4,
+                     report$report2_mod5)
+  report1_2 <- cbind("name"="",report1_2)
+  colnames(report1_2)[1] <- report_sep_names[4]
+  writeDataTable(wb, sheet = rsd_sheet_names[2],withFilter = F, report1_2,
+                 startCol = 1,startRow = 8,rowNames = F,colNames = T)
+
+  ## 3
+  addWorksheet(wb, rsd_sheet_names[3])
+  report2_1 <- cbind("name"="",report$report3_mod1)
+  colnames(report2_1)[1] <- report_sep_names[5]
+  writeDataTable(wb, sheet = rsd_sheet_names[3],withFilter = F, report2_1,
+                 startCol = 1,rowNames = F,colNames = T)
+  report2_2 <- cbind("name"="",report$report3_mod2)
+  colnames(report2_2)[1] <- report_sep_names[6]
+  writeDataTable(wb, sheet = rsd_sheet_names[3],withFilter = F, report2_2,
+                 startCol = 1,startRow = 9,rowNames = F,colNames = T)
+
+  ## 4
+  addWorksheet(wb, rsd_sheet_names[4])
+  report3_1 <- cbind("name"="",report$report4_mod1)
+  colnames(report3_1)[1] <- report_sep_names[7]
+  writeDataTable(wb, sheet = rsd_sheet_names[4],withFilter = F, report3_1,
+                 startCol = 1,rowNames = F,colNames = T)
+
+
+
+  ## 7
+  addWorksheet(wb, rsd_sheet_names[5])
+  report6_1 <- cbind("name"=rep("",50),report$report5_mod1)
+  colnames(report6_1)[1] <- report_sep_names[8]
+  writeDataTable(wb, sheet = rsd_sheet_names[5],withFilter = F, report6_1,
+                 startCol = 1,rowNames = F,colNames = T)
+  report6_2 <-cbind("name"=rep("",nrow(report$report5_mod2)),report$report5_mod2)
+  colnames(report6_2)[1] <- report_sep_names[9]
+  writeDataTable(wb, sheet = rsd_sheet_names[5],withFilter = F, report6_2,
+                 startCol = 1,startRow = 53,rowNames = F,colNames = T)
+  report6_3 <- cbind("name"="",report$report5_mod3)
+  colnames(report6_3)[1] <- report_sep_names[10]
+  writeDataTable(wb, sheet = rsd_sheet_names[5],withFilter = F, report6_3,
+                 startCol = 1,startRow = sum(53,3,nrow(report6_2)),rowNames = F,colNames = T)
+  return(wb)}
+
+inter_db <- mongo(collection = "intermedia",
+                   url = sprintf(
+                     "mongodb://%s/%s",
+                     options()$mongodb$host,
+                     "TMIST"))
+
+background <- inter_db$find( paste('{"uuid" : ', '"', "all", '"}',sep = ""))
+
+rsd_sheet_name <- background$rsd_sheet_name
+report_sep_names <- background$report_sep_names
+report_names <- background$report_names
+
+report_db <- mongo(collection = "Copy_of_report",
+                       url = sprintf(
+                         "mongodb://%s/%s",
+                         options()$mongodb$host,
+                         "TMIST"))
+
+info <- report_db$find( paste('{"uuid" : ', '"', R_Json_Path, '"}',sep = ""))
+
+info$report[[1]]$
+  
+  saveWorkbook(writeDown(tmp_data),
+               file_path,
+               overwrite = T)

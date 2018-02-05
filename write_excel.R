@@ -14,10 +14,11 @@ library(openxlsx)
 library(mongolite)
 library(jsonlite)
 library(utf8)
+library(uuid)
 
 options(scipen=200,
         mongodb = list(
-          "host" = "59.110.31.50:2017"
+          "host" = "0000000"
           # "username" = "root",
           # "password" = "root"
         ))
@@ -28,7 +29,7 @@ options(scipen=200,
 # argss[3] :  reports save path
 argss <- commandArgs(TRUE)
 R_Json_Path <- argss[1]
-phase <- argss[2]
+Phase <- argss[2]
 
 writeDown <- function(report){
 
@@ -107,23 +108,29 @@ background <- db_inter$find( paste('{"uuid" : ', '"', "all", '"}',sep = ""))
 rsd_sheet_names <- background$rsd_sheet_names[[1]]
 report_sep_names <- background$report_sep_names[[1]]
 report_names <- background$report_names[[1]]
+names_box <- background$names_box[[1]]
 
 
-db_report <- mongo(collection = "Copy_of_report",
+db_report <- mongo(collection = "report",
                        url = sprintf(
                          "mongodb://%s/%s",
                          options()$mongodb$host,
                          "TMIST"))
 
-info <- db_report$find( paste('{"uuid" : ', '"', R_Json_Path1, '"}',sep = ""))
+info <- db_report$find( paste('{"uuid" : ', '"', R_Json_Path, '"}',sep = ""))
 info_report <- info$report[[1]] %>%
-  filter(phase==phase)
+  filter(phase==Phase)
 
 report_data <- lapply(1:nrow(info_report), function(x) {
-  out <- info_report$result[[x]]
-  colname <- colnames(out)
+  out <- info_report$result[[x]] %>%
+    dplyr::select(-one_of(c("hosp_code", "prod_code")))
+  
+
   colnames(out) <- 
-    sapply(colnames(out),function(x) names_box[which(x==names(names_box))])
+    sapply(colnames(out),function(x) {
+      names_box[which(x==names_box$names_english),]$names_chinese
+    })
+  print(colnames(out))
   out
 })
 
@@ -135,7 +142,10 @@ names_data <- lapply(1:nrow(info_report), function(x) {
 
 names(report_data) <- unlist(names_data)
 
-  
-  saveWorkbook(writeDown(report_data),
-               file_path,
+file_name <-  paste(UUIDgenerate(),".xlsx",sep="")
+
+saveWorkbook(writeDown(report_data),
+               file_name,
                overwrite = T)
+
+print(paste(getwd(),"/",file_name,sep=""))

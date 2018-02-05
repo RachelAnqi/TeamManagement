@@ -130,6 +130,7 @@
     y
   }
   
+  
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ##                      data cleaning part
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -788,10 +789,9 @@
              pp_hospital_revenue,
              hospital_revenue) %>%
       distinct() %>%
-      arrange(hosp_code) %>%
-      select(-hosp_code)
+      arrange(hosp_code) 
     
-    colnames(report1_mod2) <- c("hosp_name", "last_total_revenue", "current_total_revenue")
+    colnames(report1_mod2) <- c("hosp_name", "hosp_code" ,"last_total_revenue", "current_total_revenue")
 
     
     ## report 2——1
@@ -1007,7 +1007,7 @@
       arrange(hosp_code,rank) %>%
       select(one_of(resource_allocation_variable_list))
     
-    colnames(report4_mod1) <- c("hosp_name","factor","product_first",
+    colnames(report4_mod1) <- c("hosp_code","hosp_name","factor","product_first",
                                 "product_second","product_third","product_fourth","overall")
     
  
@@ -1018,6 +1018,7 @@
       select(hosp_name,
              hosp_code,
              prod_name,
+             prod_code,
              real_revenue,
              pp_real_revenue,
              target_revenue)%>%
@@ -1025,6 +1026,7 @@
       do(plyr::rbind.fill(.,data.frame(hosp_name = first(.$hosp_name),
                                        hosp_code = first(.$hosp_code),
                                        prod_name = over_ch,
+                                       prod_code = 5,
                                        real_revenue=sum(.$real_revenue,na.rm=T),
                                        pp_real_revenue=sum(.$pp_real_revenue,na.rm=T),
                                        target_revenue = sum(.$target_revenue,na.rm=T)))) %>%
@@ -1034,7 +1036,9 @@
                                                         0,
                                                         round(real_revenue/target_revenue*100,4))) %>%
       arrange(hosp_code) %>%
-      select(hosp_name, 
+      select(hosp_code,
+             hosp_name,
+             prod_code,
              prod_name,
              target_revenue,
              pp_real_revenue,
@@ -1045,7 +1049,7 @@
     
     
     
-    colnames(report5_mod1) <- c("hosp_name","prod_name","current_target",
+    colnames(report5_mod1) <- c("hosp_code","hosp_name","prod_code","prod_name","current_target",
                                 "last_revenue","current_revenue","increase_revenue",
                                 "increase_ratio","target_realization")
     
@@ -1111,12 +1115,11 @@
     
     report5_mod3 <- report5_mod3 %>%
       left_join(dplyr::select(product_info,prod_code,prod_name),by="prod_name") %>%
-      arrange(prod_code) %>%
-      select(-prod_code)
-    
+      arrange(prod_code) 
+
     colnames(report5_mod3) <- c("prod_name","current_target",
                                 "last_revenue","current_revenue","increase_revenue",
-                                "increase_ratio","target_realization")
+                                "increase_ratio","target_realization","prod_code")
     
    
     
@@ -1244,44 +1247,7 @@
   
   
   
-  # if (phase==1){
-  #   tmp_data <- list(
-  #   "time" = as.numeric(as.POSIXct(Sys.Date(), format="%Y-%m-%d")),  
-  #   "phase" = paste(phase_ch,phase,sep=""),  
-  #   "report1_mod1" = report1_mod1,
-  #   "report1_mod2" = data_to_use2$report1_mod2,
-  #   "report2_mod1" = data_to_use2$report2_mod1,
-  #   "report2_mod2" = data_to_use2$report2_mod2,
-  #   "report2_mod3" = data_to_use2$report2_mod3,
-  #   "report2_mod4" = data_to_use2$report2_mod4,
-  #   "report2_mod5" = data_to_use2$report2_mod5,
-  #   "report3_mod1" = data_to_use2$report3_mod1,
-  #   "report3_mod2" = data_to_use2$report3_mod2,
-  #   "report4_mod1" = data_to_use2$report4_mod1,
-  #   "report5_mod1" = data_to_use2$report5_mod1,
-  #   "report5_mod2" = data_to_use2$report5_mod2,
-  #   "report5_mod3" = data_to_use2$report5_mod3,
-  #   "p1_tmp" = data_to_use,
-  #   "p1_report" = report1_1_tmp,
-  #   "p1_acc_success_value" = data_to_use2$acc_success_value)
-  # } else {
-  #   tmp_data <- list(
-  #   "time" = as.numeric(as.POSIXct(Sys.Date(), format="%Y-%m-%d")),
-  #   "phase" = paste(phase_ch,phase,sep=""),
-  #   "report1_mod1" = report1_mod1,
-  #   "report1_mod2" = data_to_use2$report1_mod2,
-  #   "report2_mod1" = data_to_use2$report2_mod1,
-  #   "report2_mod2" = data_to_use2$report2_mod2,
-  #   "report2_mod3" = data_to_use2$report2_mod3,
-  #   "report2_mod4" = data_to_use2$report2_mod4,
-  #   "report2_mod5" = data_to_use2$report2_mod5,
-  #   "report3_mod1" = data_to_use2$report3_mod1,
-  #   "report3_mod2" = data_to_use2$report3_mod2,
-  #   "report4_mod1" = data_to_use2$report4_mod1,
-  #   "report5_mod1" = data_to_use2$report5_mod1,
-  #   "report5_mod2" = data_to_use2$report5_mod2,
-  #   "report5_mod3" = data_to_use2$report5_mod3)
-  #  }
+  
   
   
   ##----------------------------------------------------------------------------
@@ -1362,10 +1328,6 @@
 
     
   
-  # 
-  # saveWorkbook(writeDown(tmp_data),
-  #              file_path,
-  #              overwrite = T)
   
 
   
